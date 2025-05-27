@@ -1,6 +1,6 @@
 # Internet Protocol Stack Simulation
 
-This is a C++ program that models a basic version of the internet protocol stack, focusing on four main layers: Application, Transport, Network, and Link. It shows how data is wrapped with headers (encapsulation) when sent, and unwrapped (decapsulation) when received. As the message moves through each layer, the program prints updates in the terminal to clearly show how the data is processed step by step.
+This is a C++ program that models a basic version of the internet protocol stack, focusing on four main layers: Application, Transport, Network, and Link. It shows how data is wrapped with headers (encapsulation) when sent, and unwrapped (decapsulation) when received. As the message moves through each layer, the program prints updates in the terminal to clearly show how the data is processed step by step. This simulation also includes extra features like checksum validation, ARP resolution, and randomized packet loss/corruption for realism.
 
 ## File Overview
 
@@ -17,12 +17,30 @@ This is a C++ program that models a basic version of the internet protocol stack
 
 
 - **application.h / application.cpp** – Represents the Application layer; uses the `APP_HDR` header.
-- **transport.h / transport.cpp** – Simulates the Transport layer with the `TRANS_HDR` header.
-- **network.h / network.cpp** – Implements the Network layer, using the `NET_HDR` header.
-- **link.h / link.cpp** – Models the Link layer, appending and removing the `LINK_HDR` header.
+- **transport.h / transport.cpp** – Simulates the Transport layer with the `TRANS_HDR` header and handles checksum functionality.
+- **network.h / network.cpp** – Implements the Network layer, using the `NET_HDR` header and simulating corruption or drop.
+- **link.h / link.cpp** – Models the Link layer, appending and removing the `LINK_HDR` header and resolving IP to MAC via ARP.
 
+## Optional Extensions Implemented 
 
+This program includes all three of the optional simulation enhancements:
 
+1. **ARP Resolution at the Link Layer**
+   - Simulates resolving an IP address to a MAC address via a hardcoded ARP table.
+   - User selects a destination IP from a menu.
+   - The Link layer prints the resolution before transmission.
+
+2. **Checksums in the Transport Layer**
+   - Calculates a simple checksum using ASCII values modulo 256.
+   - Appends it in the header during send; validates it during receive.
+   - If corruption occurs, a checksum mismatch warning is printed.
+
+3. **Simulated Packet Corruption or Drop**
+   - Network layer has a 10% chance to corrupt the packet and a 10% chance to drop it.
+   - Drop skips transmission entirely.
+   - Corruption modifies part of the message, triggering checksum errors or malformed headers.
+
+   
 
 ## How to Build the Project
 
@@ -48,19 +66,27 @@ g++ main.cpp layers/*.cpp -o main
 ## Sample Output
 
 ```python
+
 Message to send: Hello, Network!
 
+Select destination IP:
+  1. 192.168.0.10
+  2. 192.168.0.11
+Enter choice (1 or 2): 1
+Message sent: Hello, Network!
+
 ==== Sending ====
-[Application Layer] Sending: Hello, Network!
-[Transport Layer] Sending: APP_HDR|Hello, Network!
-[Network Layer] Sending: TRANS_HDR|APP_HDR|Hello, Network!
-[Link Layer] Sending: NET_HDR|TRANS_HDR|APP_HDR|Hello, Network!
+[Application layer] Sending: Hello, Network!
+[Transport layer] Sending: APP_HDR|Hello, Network! (Checksum: 229)
+[Network layer] Sending: TRANS_HDR:CHKSUM_229|APP_HDR|Hello, Network!
+[Link layer] ARP resolved: 192.168.0.10 -> AA:BB:CC:DD:EE:01
+[Link layer] Sending: NET_HDR|TRANS_HDR:CHKSUM_229|APP_HDR|Hello, Network!
 
 ==== Receiving ====
-[Link Layer] Receiving: LINK_HDR|NET_HDR|TRANS_HDR|APP_HDR|Hello, Network!
-[Network Layer] Receiving: NET_HDR|TRANS_HDR|APP_HDR|Hello, Network!
-[Transport Layer] Receiving: TRANS_HDR|APP_HDR|Hello, Network!
-[Application Layer] Receiving: APP_HDR|Hello, Network!
+[Link layer] Receiving: LINK_HDR|NET_HDR|TRANS_HDR:CHKSUM_229|APP_HDR|Hello, Network!
+[Network layer] Receiving: NET_HDR|TRANS_HDR:CHKSUM_229|APP_HDR|Hello, Network!
+[Transport layer] Receiving: TRANS_HDR:CHKSUM_229|APP_HDR|Hello, Network!
+[Application layer] Receiving: APP_HDR|Hello, Network!
 
 Final message received: Hello, Network!
 
@@ -73,3 +99,5 @@ Final message received: Hello, Network!
 
 - **Jazmin Chavez** 
 
+
+- **Jacob Miller**
